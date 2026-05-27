@@ -1,7 +1,7 @@
 const { createClient } = require("redis");
 
 const client = createClient({
-  url: process.env.REDIS_URL || "redis://localhost:6379",
+  url: process.env.REDIS_URL || "rediss://default:gQAAAAAAAhj2AAIgcDIxODA2MDExMDk1OGY0NGJmYjZjZGM1OTBmNWE3YThkNg@deep-basilisk-137462.upstash.io:6379",
 });
 
 client.on("error", (err) => console.error("Redis error:", err));
