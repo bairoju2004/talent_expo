@@ -26,7 +26,6 @@ router.post("/reset-password", resetPassword);
 
 // ── Google OAuth ──────────────────────────────────────────────────────────────
 
-// LOGIN with Google — only allows existing TalentExpo accounts
 router.get("/google/login", (req, res, next) => {
   passport.authenticate("google", {
     scope: ["profile", "email"],
@@ -34,7 +33,6 @@ router.get("/google/login", (req, res, next) => {
   })(req, res, next);
 });
 
-// REGISTER as Customer with Google — creates account if not exists
 router.get("/google/register/customer", (req, res, next) => {
   passport.authenticate("google", {
     scope: ["profile", "email"],
@@ -42,7 +40,6 @@ router.get("/google/register/customer", (req, res, next) => {
   })(req, res, next);
 });
 
-// REGISTER as Artist with Google — creates account if not exists
 router.get("/google/register/artist", (req, res, next) => {
   passport.authenticate("google", {
     scope: ["profile", "email"],
@@ -50,7 +47,6 @@ router.get("/google/register/artist", (req, res, next) => {
   })(req, res, next);
 });
 
-// Keep /google as alias for login (used by login page)
 router.get("/google", (req, res, next) => {
   passport.authenticate("google", {
     scope: ["profile", "email"],
@@ -58,22 +54,17 @@ router.get("/google", (req, res, next) => {
   })(req, res, next);
 });
 
-// Callback — Google always redirects here
-// We determine login vs register by checking the Referer header
-// and whether a user was found or not
 router.get("/google/callback", (req, res, next) => {
   passport.authenticate("google", { session: false }, async (err, user, info) => {
     if (err) {
       return res.redirect(`${process.env.CLIENT_URL}/login?error=google_failed`);
     }
 
-    // ── Existing user found — just log them in ──────────────────────────────
     if (user) {
       req.user = user;
       return googleCallback(req, res);
     }
 
-    // ── No user found ───────────────────────────────────────────────────────
     const message  = info?.message || "no_account";
     const email    = info?.email || "";
     const name     = info?.name || "";
@@ -84,18 +75,14 @@ router.get("/google/callback", (req, res, next) => {
     }
 
     if (message === "no_account") {
-      // Check what initiated this — look at the path that was originally used.
-      // We store the intended action in a short-lived cookie set before redirect.
       const intendedAction = req.cookies?.google_action || "login";
 
       if (intendedAction === "login") {
-        // Login attempt with no account — send to register
         return res.redirect(
           `${process.env.CLIENT_URL}/register?error=no_account&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`
         );
       }
 
-      // Registration — create the account now
       const role = intendedAction === "register_artist" ? "artist" : "customer";
 
       try {
@@ -113,8 +100,7 @@ router.get("/google/callback", (req, res, next) => {
 
         const token = generateToken(newUser._id);
 
-        // Clear the cookie
-        res.clearCookie("google_action");
+        res.clearCookie("google_action", { sameSite: 'none', secure: true });
 
         return res.redirect(
           `${process.env.CLIENT_URL}/auth/google/callback?token=${token}&id=${newUser._id}&name=${encodeURIComponent(newUser.name)}&email=${encodeURIComponent(newUser.email)}&role=${newUser.role}&isNew=true`
@@ -129,20 +115,34 @@ router.get("/google/callback", (req, res, next) => {
   })(req, res, next);
 });
 
-// ── Cookie-setting routes — frontend hits these BEFORE redirecting to Google ──
-// These set a short-lived cookie so the callback knows the intended action.
+// ── Cookie-setting routes ──────────────────────────────────────────────────────
 router.get("/google/intent/login", (req, res) => {
-  res.cookie("google_action", "login", { maxAge: 5 * 60 * 1000, httpOnly: true });
+  res.cookie("google_action", "login", {
+    maxAge: 5 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+  });
   res.redirect("/api/auth/google/login");
 });
 
 router.get("/google/intent/register/customer", (req, res) => {
-  res.cookie("google_action", "register_customer", { maxAge: 5 * 60 * 1000, httpOnly: true });
+  res.cookie("google_action", "register_customer", {
+    maxAge: 5 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+  });
   res.redirect("/api/auth/google/register/customer");
 });
 
 router.get("/google/intent/register/artist", (req, res) => {
-  res.cookie("google_action", "register_artist", { maxAge: 5 * 60 * 1000, httpOnly: true });
+  res.cookie("google_action", "register_artist", {
+    maxAge: 5 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+  });
   res.redirect("/api/auth/google/register/artist");
 });
 
