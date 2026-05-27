@@ -6,19 +6,18 @@ const nodemailer = require("nodemailer");
  */
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // Use an App Password, not your regular Gmail password
+      pass: process.env.EMAIL_PASS,
     },
   });
 };
 
 /**
  * Send a registration welcome + email verification email.
- * @param {string} to       - Recipient email address
- * @param {string} name     - Recipient's name
- * @param {string} token    - Verification token
  */
 exports.sendVerificationEmail = async (to, name, token) => {
   const transporter = createTransporter();
@@ -56,9 +55,6 @@ exports.sendVerificationEmail = async (to, name, token) => {
 
 /**
  * Send a password reset email.
- * @param {string} to       - Recipient email address
- * @param {string} name     - Recipient's name
- * @param {string} token    - Password reset token
  */
 exports.sendPasswordResetEmail = async (to, name, token) => {
   const transporter = createTransporter();
@@ -82,7 +78,7 @@ exports.sendPasswordResetEmail = async (to, name, token) => {
               Reset Password
             </a>
           </div>
-          <p style="color:#6b7280;font-size:13px;">This link expires in <strong>1 hour</strong>. If you didn't request a password reset, you can safely ignore this email — your password will remain unchanged.</p>
+          <p style="color:#6b7280;font-size:13px;">This link expires in <strong>1 hour</strong>. If you didn't request a password reset, you can safely ignore this email.</p>
           <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
           <p style="color:#9ca3af;font-size:12px;text-align:center;">
             If the button doesn't work, copy this link:<br/>
@@ -95,9 +91,7 @@ exports.sendPasswordResetEmail = async (to, name, token) => {
 };
 
 /**
- * Send a login notification email when a user logs in via Google for the first time.
- * @param {string} to    - Recipient email address
- * @param {string} name  - Recipient's name
+ * Send a welcome email when a user logs in via Google.
  */
 exports.sendWelcomeGoogleEmail = async (to, name) => {
   const transporter = createTransporter();
