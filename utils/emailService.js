@@ -1,32 +1,13 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require('resend');
 
-/**
- * Create a reusable transporter using Gmail SMTP.
- * Credentials are read from environment variables.
- */
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-};
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-/**
- * Send a registration welcome + email verification email.
- */
 exports.sendVerificationEmail = async (to, name, token) => {
-  const transporter = createTransporter();
   const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
-
-  await transporter.sendMail({
-    from: `"TalentExpo" <${process.env.EMAIL_USER}>`,
+  await resend.emails.send({
+    from: 'TalentExpo <onboarding@resend.dev>',
     to,
-    subject: "Verify your TalentExpo email address",
+    subject: 'Verify your TalentExpo email address',
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#f9f5ff;border-radius:12px;">
         <div style="text-align:center;margin-bottom:24px;">
@@ -41,7 +22,7 @@ exports.sendVerificationEmail = async (to, name, token) => {
               Verify Email Address
             </a>
           </div>
-          <p style="color:#6b7280;font-size:13px;">This link expires in <strong>24 hours</strong>. If you didn't create an account, you can safely ignore this email.</p>
+          <p style="color:#6b7280;font-size:13px;">This link expires in <strong>24 hours</strong>.</p>
           <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
           <p style="color:#9ca3af;font-size:12px;text-align:center;">
             If the button doesn't work, copy this link:<br/>
@@ -53,17 +34,12 @@ exports.sendVerificationEmail = async (to, name, token) => {
   });
 };
 
-/**
- * Send a password reset email.
- */
 exports.sendPasswordResetEmail = async (to, name, token) => {
-  const transporter = createTransporter();
   const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
-
-  await transporter.sendMail({
-    from: `"TalentExpo" <${process.env.EMAIL_USER}>`,
+  await resend.emails.send({
+    from: 'TalentExpo <onboarding@resend.dev>',
     to,
-    subject: "Reset your TalentExpo password",
+    subject: 'Reset your TalentExpo password',
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#f9f5ff;border-radius:12px;">
         <div style="text-align:center;margin-bottom:24px;">
@@ -78,7 +54,7 @@ exports.sendPasswordResetEmail = async (to, name, token) => {
               Reset Password
             </a>
           </div>
-          <p style="color:#6b7280;font-size:13px;">This link expires in <strong>1 hour</strong>. If you didn't request a password reset, you can safely ignore this email.</p>
+          <p style="color:#6b7280;font-size:13px;">This link expires in <strong>1 hour</strong>.</p>
           <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
           <p style="color:#9ca3af;font-size:12px;text-align:center;">
             If the button doesn't work, copy this link:<br/>
@@ -90,16 +66,11 @@ exports.sendPasswordResetEmail = async (to, name, token) => {
   });
 };
 
-/**
- * Send a welcome email when a user logs in via Google.
- */
 exports.sendWelcomeGoogleEmail = async (to, name) => {
-  const transporter = createTransporter();
-
-  await transporter.sendMail({
-    from: `"TalentExpo" <${process.env.EMAIL_USER}>`,
+  await resend.emails.send({
+    from: 'TalentExpo <onboarding@resend.dev>',
     to,
-    subject: "Welcome to TalentExpo!",
+    subject: 'Welcome to TalentExpo!',
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#f9f5ff;border-radius:12px;">
         <div style="text-align:center;margin-bottom:24px;">
