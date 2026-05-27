@@ -1,13 +1,22 @@
-const { Resend } = require('resend');
+const nodemailer = require("nodemailer");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+};
 
 exports.sendVerificationEmail = async (to, name, token) => {
+  const transporter = createTransporter();
   const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
-  await resend.emails.send({
-    from: 'TalentExpo <onboarding@resend.dev>',
+  await transporter.sendMail({
+    from: `"TalentExpo" <${process.env.EMAIL_USER}>`,
     to,
-    subject: 'Verify your TalentExpo email address',
+    subject: "Verify your TalentExpo email address",
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#f9f5ff;border-radius:12px;">
         <div style="text-align:center;margin-bottom:24px;">
@@ -23,7 +32,6 @@ exports.sendVerificationEmail = async (to, name, token) => {
             </a>
           </div>
           <p style="color:#6b7280;font-size:13px;">This link expires in <strong>24 hours</strong>.</p>
-          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
           <p style="color:#9ca3af;font-size:12px;text-align:center;">
             If the button doesn't work, copy this link:<br/>
             <a href="${verifyUrl}" style="color:#7c3aed;word-break:break-all;">${verifyUrl}</a>
@@ -35,11 +43,12 @@ exports.sendVerificationEmail = async (to, name, token) => {
 };
 
 exports.sendPasswordResetEmail = async (to, name, token) => {
+  const transporter = createTransporter();
   const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
-  await resend.emails.send({
-    from: 'TalentExpo <onboarding@resend.dev>',
+  await transporter.sendMail({
+    from: `"TalentExpo" <${process.env.EMAIL_USER}>`,
     to,
-    subject: 'Reset your TalentExpo password',
+    subject: "Reset your TalentExpo password",
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#f9f5ff;border-radius:12px;">
         <div style="text-align:center;margin-bottom:24px;">
@@ -55,7 +64,6 @@ exports.sendPasswordResetEmail = async (to, name, token) => {
             </a>
           </div>
           <p style="color:#6b7280;font-size:13px;">This link expires in <strong>1 hour</strong>.</p>
-          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
           <p style="color:#9ca3af;font-size:12px;text-align:center;">
             If the button doesn't work, copy this link:<br/>
             <a href="${resetUrl}" style="color:#7c3aed;word-break:break-all;">${resetUrl}</a>
@@ -67,10 +75,11 @@ exports.sendPasswordResetEmail = async (to, name, token) => {
 };
 
 exports.sendWelcomeGoogleEmail = async (to, name) => {
-  await resend.emails.send({
-    from: 'TalentExpo <onboarding@resend.dev>',
+  const transporter = createTransporter();
+  await transporter.sendMail({
+    from: `"TalentExpo" <${process.env.EMAIL_USER}>`,
     to,
-    subject: 'Welcome to TalentExpo!',
+    subject: "Welcome to TalentExpo!",
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#f9f5ff;border-radius:12px;">
         <div style="text-align:center;margin-bottom:24px;">
@@ -79,7 +88,6 @@ exports.sendWelcomeGoogleEmail = async (to, name) => {
         <div style="background:#fff;border-radius:10px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
           <h2 style="color:#1f2937;margin-top:0;">Welcome, ${name}! 🎉</h2>
           <p style="color:#4b5563;">You've successfully signed in to TalentExpo with your Google account.</p>
-          <p style="color:#4b5563;">You can now explore artists, make bookings, and much more. Enjoy!</p>
           <div style="text-align:center;margin:24px 0;">
             <a href="${process.env.CLIENT_URL}/browse"
                style="background:#7c3aed;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">
